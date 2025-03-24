@@ -1,0 +1,89 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ author.get_full_name }}'s Profile - DIY Blog{% endblock %}
+
+{% block header %}
+    <div class="text-center">
+        <div class="mb-4">
+            {% if author.profile_picture %}
+                <img src="{{ author.profile_picture.url }}" alt="{{ author.get_full_name }}'s profile picture" class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
+            {% else %}
+                <img src="{{ author.get_profile_picture_url }}" alt="Default profile picture" class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
+            {% endif %}
+        </div>
+        <h1>{{ author.get_full_name }}</h1>
+        {% if user == author.user %}
+            <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary btn-sm mt-2">
+                Edit Profile
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block subheader %}
+    <div class="text-center text-muted">
+        Member since {{ author.created_at|date:"F j, Y" }}
+        {% if author.user.email %}
+            • {{ author.user.email }}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">About</h5>
+                    <p class="card-text">{{ author.bio|linebreaks }}</p>
+                    <div class="card-text">
+                        <small class="text-muted">
+                            <div>Total Posts: {{ posts.count }}</div>
+                            {% with total_comments=0 %}
+                                {% for post in posts %}
+                                    {% with comments_count=post.comments.count %}
+                                        {% with total_comments=total_comments|add:comments_count %}{% endwith %}
+                                    {% endwith %}
+                                {% endfor %}
+                                <div>Total Comments: {{ total_comments }}</div>
+                            {% endwith %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <h3 class="mb-4">Blog Posts</h3>
+            {% if posts %}
+                {% for post in posts %}
+                    <div class="card mb-4">
+                        {% if post.image %}
+                            <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ post.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ post.created_at|date:"F j, Y" }}</h6>
+                            <p class="card-text">{{ post.content|truncatewords:50|linebreaks }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'blog_post_detail' post.slug %}" class="btn btn-primary">Read More</a>
+                                <small class="text-muted">
+                                    {{ post.comments.count }} comment{{ post.comments.count|pluralize }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    No blog posts yet.
+                    {% if user == author.user %}
+                        <a href="{% url 'create_post' %}" class="alert-link">Write your first post!</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

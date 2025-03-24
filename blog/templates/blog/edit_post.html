@@ -1,0 +1,134 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Edit Post - {{ post.title }}{% endblock %}
+
+{% block header %}Edit Post{% endblock %}
+
+{% block subheader %}Update your blog post{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-post-form {
+        background: var(--card-bg);
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .form-label {
+        color: var(--text-color);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .image-preview {
+        max-width: 300px;
+        margin-top: 1rem;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-cancel {
+        background: var(--light-bg);
+        color: var(--text-color);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <form method="post" enctype="multipart/form-data" class="edit-post-form">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.title.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
+                {{ form.content }}
+                {% if form.content.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.content.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ form.image.id_for_label }}" class="form-label">Image</label>
+                {{ form.image }}
+                {% if post.image %}
+                <div class="mt-2">
+                    <p class="text-muted">Current image:</p>
+                    <img src="{{ post.image.url }}" alt="Current post image" class="image-preview">
+                </div>
+                {% endif %}
+                {% if form.image.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.image.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-save">
+                    <i class="bi bi-check-lg"></i> Save Changes
+                </button>
+                <a href="{% url 'blog_post_detail' post.slug %}" class="btn btn-cancel">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any JavaScript for form handling here
+</script>
+{% endblock %} 

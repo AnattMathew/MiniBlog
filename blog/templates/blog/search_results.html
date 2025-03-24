@@ -1,0 +1,104 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Search Results - DIY Blog{% endblock %}
+
+{% block header %}Search Results{% endblock %}
+
+{% block subheader %}
+    {% if query %}
+        Found {{ total_results }} result{{ total_results|pluralize }} for "{{ query }}"
+    {% else %}
+        Enter a search term in the navigation bar above
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            {% if query %}
+                {% if posts %}
+                    <div class="row">
+                        {% for post in posts %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 post-card">
+                                    {% if post.image %}
+                                        <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ post.title }}</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">
+                                            By <a href="{% url 'blogger_detail' post.author.user.username %}">{{ post.author.user.username }}</a> | 
+                                            {{ post.created_at|date:"F j, Y" }}
+                                        </h6>
+                                        <p class="card-text">{{ post.content|truncatewords:30|safe }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a href="{% url 'blog_post_detail' post.slug %}" class="btn btn-primary">Read More</a>
+                                            <small class="text-muted">
+                                                {{ post.comments.count }} comment{{ post.comments.count|pluralize }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if is_paginated %}
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?q={{ query }}&page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <h4 class="alert-heading">No Results Found</h4>
+                        <p>No posts found matching your search query "{{ query }}". Try different keywords or check the spelling.</p>
+                        <hr>
+                        <p class="mb-0">Suggestions:</p>
+                        <ul>
+                            <li>Try different keywords</li>
+                            <li>Check for typos</li>
+                            <li>Use more general terms</li>
+                            <li>Try searching for a specific topic</li>
+                        </ul>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">Search Tips</h4>
+                    <p>Use the search bar in the navigation menu above to search for blog posts. You can search by:</p>
+                    <ul>
+                        <li>Post title</li>
+                        <li>Post content</li>
+                        <li>Author name</li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

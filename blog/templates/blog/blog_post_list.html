@@ -1,0 +1,306 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Blog Posts - DIY Blog{% endblock %}
+
+{% block header %}Blog Posts{% endblock %}
+
+{% block subheader %}
+    {% if tag %}Posts tagged with "{{ tag }}"{% endif %}
+    {% if author %}Posts by {{ author.username }}{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .post-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--card-shadow);
+    }
+
+    .post-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .post-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .post-title {
+        color: var(--primary-color);
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .post-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .post-title a:hover {
+        color: var(--primary-color-dark);
+    }
+
+    .post-meta {
+        color: #666;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    .post-excerpt {
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .post-footer {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .tag {
+        background: rgba(var(--primary-color-rgb), 0.1);
+        color: var(--primary-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+
+    .tag:hover {
+        background: rgba(var(--primary-color-rgb), 0.2);
+        color: var(--primary-color-dark);
+    }
+
+    .stats {
+        display: flex;
+        gap: 1rem;
+        color: #666;
+        font-size: 0.875rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .filters {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+    }
+
+    .filter-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-link {
+        color: var(--text-color);
+        text-decoration: none;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        background: rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .filter-link:hover,
+    .filter-link.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .pagination {
+        margin-top: 2rem;
+        justify-content: center;
+    }
+
+    .page-link {
+        border-radius: 50%;
+        margin: 0 0.25rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        border: none;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: var(--card-shadow);
+    }
+
+    .page-link:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .page-item.disabled .page-link {
+        background: rgba(255, 255, 255, 0.5);
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="filters">
+            <div class="filter-group">
+                <div class="filter-label">Sort by</div>
+                <div class="filter-options">
+                    <a href="?sort=latest" class="filter-link {% if sort == 'latest' or not sort %}active{% endif %}">Latest</a>
+                    <a href="?sort=popular" class="filter-link {% if sort == 'popular' %}active{% endif %}">Most Popular</a>
+                    <a href="?sort=commented" class="filter-link {% if sort == 'commented' %}active{% endif %}">Most Commented</a>
+                </div>
+            </div>
+            {% if tags %}
+            <div class="filter-group">
+                <div class="filter-label">Popular Tags</div>
+                <div class="filter-options">
+                    {% for tag in tags %}
+                    <a href="{% url 'blog_posts_by_tag' tag.slug %}" class="filter-link">
+                        {{ tag.name }} ({{ tag.post_count }})
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for post in posts %}
+    <div class="col-md-6 col-lg-4">
+        <article class="post-card">
+            {% if post.image %}
+            <img src="{{ post.image.url }}" class="post-image" alt="{{ post.title }}">
+            {% endif %}
+            <div class="post-content">
+                <h2 class="post-title">
+                    <a href="{% url 'blog_post_detail' post.slug %}">{{ post.title }}</a>
+                </h2>
+                <div class="post-meta">
+                    By <a href="{% url 'blogger_detail' post.author.user.username %}" class="text-decoration-none">{{ post.author.user.username }}</a> | 
+                    {{ post.created_at|date:"F j, Y" }}
+                </div>
+                {% if post.tags.all %}
+                <div class="tag-list">
+                    {% for tag in post.tags.all %}
+                    <a href="{% url 'blog_posts_by_tag' tag.slug %}" class="tag">{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="post-excerpt">
+                    {{ post.content|truncatewords:30 }}
+                </div>
+                <div class="post-footer">
+                    <div class="stats">
+                        <span class="stat-item">
+                            <i class="bi bi-chat"></i>
+                            {{ post.comment_set.count }}
+                        </span>
+                        <span class="stat-item">
+                            <i class="bi bi-heart"></i>
+                            {{ post.reaction_set.count }}
+                        </span>
+                    </div>
+                    <a href="{% url 'blog_post_detail' post.slug %}" class="btn btn-primary btn-sm">Read More</a>
+                </div>
+            </div>
+        </article>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            No blog posts found.
+            {% if user.is_authenticated %}
+            <a href="{% url 'create_post' %}" class="alert-link">Create your first post!</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

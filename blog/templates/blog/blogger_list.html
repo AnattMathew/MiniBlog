@@ -1,0 +1,80 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Our Bloggers - DIY Blog{% endblock %}
+
+{% block header %}Our Bloggers{% endblock %}
+
+{% block subheader %}Meet the talented writers behind our blog{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for blogger in bloggers %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            {{ blogger.user.username|first|upper }}
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-0">
+                            <a href="{% url 'blogger_detail' blogger.user.username %}" class="text-decoration-none">
+                                {{ blogger.user.username }}
+                            </a>
+                        </h5>
+                        <p class="text-muted mb-0">Member since {{ blogger.created_at|date:"F Y" }}</p>
+                    </div>
+                </div>
+                <p class="card-text">{{ blogger.bio|truncatewords:50 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'blogger_detail' blogger.user.username %}" class="btn btn-outline-primary btn-sm">View Posts</a>
+                    <small class="text-muted">{{ blogger.posts.count }} post{{ blogger.posts.count|pluralize }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            No bloggers available yet. Check back soon!
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
